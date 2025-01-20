@@ -1,0 +1,7 @@
+PyQt5
+matplotlib
+openpyxl
+requests
+pandas
+okama
+bs4
