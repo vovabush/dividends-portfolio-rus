@@ -101,15 +101,18 @@ def calculate_fair_price(data, sector_averages):
         net_profit_row = float(data[data.iloc[:, 0].str.startswith('Чистая прибыль,')].iloc[-1]["LTM"].replace(' ', '').replace(',', '.'))
         net_profit = net_profit_row*mult
 
-        mult = data[data.iloc[:, 0].str.startswith('Капитализация,')].iloc[-1].to_numpy()[0]
-        if "млрд" in mult:
-            mult = 10**9
-        elif "млн" in mult:
-            mult = 10**6
-        else:
-            mult = 1
-        cap_row = float(data[data.iloc[:, 0].str.startswith('Капитализация,')].iloc[-1]["LTM"].replace(' ', '').replace(',', '.'))
-        cap = cap_row*mult
+        try:
+            mult = data[data.iloc[:, 0].str.startswith('Выручка,')].iloc[-1].to_numpy()[0]
+            if "млрд" in mult:
+                mult = 10**9
+            elif "млн" in mult:
+                mult = 10**6
+            else:
+                mult = 1
+            sales_row = float(data[data.iloc[:, 0].str.startswith('Выручка,')].iloc[-1]["LTM"].replace(' ', '').replace(',', '.'))
+            sales = sales_row*mult
+        except: 
+            sales = None
 
         try:
             mult = data[data.iloc[:, 0].str.startswith('Баланс стоимость,')].iloc[-1]
@@ -122,7 +125,18 @@ def calculate_fair_price(data, sector_averages):
             bv_row = float(data[data.iloc[:, 0].str.startswith('Баланс стоимость,')].iloc[-1]["LTM"].replace(' ', '').replace(',', '.'))
             bv = bv_row*mult
         except:
-            bv = None
+            try:
+                mult = data[data.iloc[:, 0].str.startswith('Капитал,')].iloc[-1]
+                if "млрд" in mult:
+                    mult = 10**9
+                elif "млн" in mult:
+                    mult = 10**6
+                else:
+                    mult = 1
+                bv_row = float(data[data.iloc[:, 0].str.startswith('Капитал,')].iloc[-1]["LTM"].replace(' ', '').replace(',', '.'))
+                bv = bv_row*mult
+            except:
+                bv = None
 
         mult = data[data.iloc[:, 0].str.startswith('Число акций ао,')].iloc[-1].to_numpy()[0]
         if "млрд" in mult:
@@ -151,20 +165,32 @@ def calculate_fair_price(data, sector_averages):
         sector_pe = sector_averages["P/E"]
         sector_ps = sector_averages["P/S"]
         sector_pb = sector_averages["P/B"]
+
         # Рассчитываем справедливую цену
         fair_price_pe = (sector_pe * net_profit) / shares
-        fair_price_ps = (sector_ps * cap) / shares
+
+        if sales:
+            fair_price_ps = (sector_ps * sales) / shares
+        else:
+            fair_price_ps = None
+        
         if bv:
             fair_price_pb = (sector_pb * bv) / shares
         else:
-            fair_price_pb = (sector_pb * cap) / shares
+            fair_price_pb = None
 
         # Среднее арифметическое
-        if bv:
-            fair_price = np.mean([fair_price_pe, fair_price_ps, fair_price_pb])
+        if sales:
+            if bv:
+                fair_price = np.mean([fair_price_pe, fair_price_ps, fair_price_pb])
+            else:
+                fair_price = np.mean([fair_price_pe, fair_price_ps])
         else:
+            if bv:
+                fair_price = np.mean([fair_price_pe, fair_price_pb])
+            else:
+                fair_price = fair_price_pe
 
-            fair_price = np.mean([fair_price_pe, fair_price_pb])
         return fair_price
     except Exception as e:
         print(f"Ошибка при вычислении справедливой цены: {e}")
