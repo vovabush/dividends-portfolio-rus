@@ -91,15 +91,15 @@ def get_sector_averages(ticker):
 def calculate_fair_price(data, sector_averages):
     try:
         # Достаем необходимые показатели из отчётности компании
-        mult = data[data.iloc[:, 0].str.startswith('EV,')].iloc[-1].to_numpy()[0]
+        mult = data[data.iloc[:, 0].str.startswith('Чистая прибыль,')].iloc[-1].to_numpy()[0]
         if "млрд" in mult:
             mult = 10**9
         elif "млн" in mult:
             mult = 10**6
         else:
             mult = 1
-        ev_row = float(data[data.iloc[:, 0].str.startswith('EV,')].iloc[-1]["LTM"].replace(' ', '').replace(',', '.'))
-        ev = ev_row*mult
+        net_profit_row = float(data[data.iloc[:, 0].str.startswith('Чистая прибыль,')].iloc[-1]["LTM"].replace(' ', '').replace(',', '.'))
+        net_profit = net_profit_row*mult
 
         mult = data[data.iloc[:, 0].str.startswith('Капитализация,')].iloc[-1].to_numpy()[0]
         if "млрд" in mult:
@@ -152,7 +152,7 @@ def calculate_fair_price(data, sector_averages):
         sector_ps = sector_averages["P/S"]
         sector_pb = sector_averages["P/B"]
         # Рассчитываем справедливую цену
-        fair_price_pe = (sector_pe * ev) / shares
+        fair_price_pe = (sector_pe * net_profit) / shares
         fair_price_ps = (sector_ps * cap) / shares
         if bv:
             fair_price_pb = (sector_pb * bv) / shares
