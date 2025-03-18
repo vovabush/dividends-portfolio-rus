@@ -48,7 +48,7 @@ def extract_revenue_and_profit(file_path):
 
     if revenue_row.empty or profit_row.empty:
         print("calculate_buffer_score:: Не удалось найти данные о выручке или чистой прибыли.")
-        return False, False
+        return None, None
 
     # Оставляем только столбцы с годами и преобразуем в числовой формат
     year_columns = [col for col in df.columns if col.isdigit()]  # Ищем колонки с годами
@@ -58,17 +58,39 @@ def extract_revenue_and_profit(file_path):
         profit_data = profit_row[year_columns].iloc[0].apply(lambda x: float(str(x).replace(' ', '').replace(',', '.')))
     except Exception as e:
         print(f"Ошибка при обработке данных: {e}")
-        return False, False
+        return None, None
 
     # Проверяем рост за последние 5 лет
     if len(year_columns) < 5:
         print("Недостаточно данных для анализа (менее 5 лет).")
-        return False, False
+        return None, None
 
     revenue_growth = (revenue_data.pct_change().tail(5) > 0).all()  # Рост выручки
     profit_growth = (profit_data.pct_change().tail(5) > 0).all()  # Рост чистой прибыли
 
     return revenue_growth, profit_growth
+
+def extract_ebitda(file_path):
+    df = pd.read_excel(file_path, sheet_name='Sheet1')  # Загружаем все листы
+    
+    # Извлекаем строки с выручкой и чистой прибылью
+    ebitda_row = df[df['Unnamed: 0'] == 'Рентаб EBITDA, %']
+
+    if ebitda_row.empty:
+        print("calculate_buffer_score:: Не удалось найти данные о EBITDA.")
+        return None
+
+    # Оставляем только столбцы с годами и преобразуем в числовой формат
+    year_columns = [col for col in df.columns if col.isdigit()]  # Ищем колонки с годами
+    try:
+        # Преобразуем строки с данными в числовой формат
+        ebitda_data = ebitda_row[year_columns].iloc[0].apply(lambda x: float(str(x).replace(' ', '').replace(',', '.').replace('%', '')))
+    except Exception as e:
+        print(f"Ошибка при обработке данных: {e}")
+        return None
+
+    ebitda_growth = (ebitda_data.pct_change().tail(3) > 0).all()  # Рост ebitda
+    return ebitda_growth
 
 # Функция для получения текущей цены акции и цены 5 лет назад через API MOEX
 def get_stock_prices(ticker):
@@ -107,10 +129,7 @@ def calculate_subjective_score(ticker):
         return None
     
     revenue_growth, profit_growth = extract_revenue_and_profit(file_path)
-    
-    if revenue_growth is None or profit_growth is None:
-        print(f"Не удалось извлечь данные для {ticker}.")
-        return None
+
     
     # Шаг 2: Получаем текущие и исторические цены акций
     current_price, five_years_ago_price = get_stock_prices(ticker)
@@ -120,18 +139,29 @@ def calculate_subjective_score(ticker):
     
     # Шаг 3: Оценка на основе роста выручки, прибыли и цен
     score = 0
-    if revenue_growth:
-        score += 1.67
-    if profit_growth:
-        score += 1.67
-    if current_price > five_years_ago_price:
-        score += 1.67
+    if revenue_growth == None:
+        if current_price > five_years_ago_price:
+            score += 5
+    else:
+        if revenue_growth:
+            score += 1.67
+        if profit_growth:
+            score += 1.67
+        if current_price > five_years_ago_price:
+            score += 1.67
     
+    # Шаг 4: Оценка роста рентабильности по EBITDA за последние три года
+    ebitda_growth = extract_ebitda(file_path)
+    if ebitda_growth != None:
+        if ebitda_growth:
+            score += 5
+            score = score/5
+
     return score
 
 if __name__ == "__main__":
     # Пример использования
-    ticker = "PHOR"  # Укажите тикер компании
+    ticker = "TQBR"  # Укажите тикер компании
     score = calculate_subjective_score(ticker)
     if score is not None:
         print(f"Субъективная оценка для {ticker}: {score}")
