@@ -16,7 +16,7 @@ def download_financial_data(ticker):
         # Разбиваем строки и убираем BOM символы
         lines = data.strip().split("\n")
         lines = [re.sub(r'^', '', line) for line in lines]  # Убираем BOM символ
- 
+
         # Заголовок таблицы
         header = lines[0].split(";")
 
