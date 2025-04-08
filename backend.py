@@ -8,7 +8,6 @@ import pandas as pd
 from datetime import datetime, timedelta
 import numpy as np
 import calculate_buffet_score
-import calculate_fair_value
 import calculate_multiplier_score
 import calculate_vwap_score
 import calculate_dividends_score
@@ -27,7 +26,6 @@ class Stock:
         self.return_5y = expected_returns_and_volatility[0]  # Ожидаемая доходность за 5 лет
         self.volatility_5y = expected_returns_and_volatility[1]  # Ожидаемая волатильность за 5 лет
         self.buffet_score = calculate_buffet_score.calculate_subjective_score(self.ticker)
-        self.fair_value = calculate_fair_value.main(self.ticker)  # Справедливая стоимость
         self.multipliers_score = calculate_multiplier_score.evaluate_company(self.ticker)["score"]  # Оценка через P/E, P/B, P/S
         self.vwap_score = calculate_vwap_score.evaluate_company(self.ticker)["score"]  # Оценка VWAP
         self.dividend_score = calculate_dividends_score.evaluate_company(self.ticker)["score"]  # Оценка стабильности дивидендов
@@ -40,7 +38,6 @@ class Stock:
         self.total_score = sum(
             [
                 self.buffet_score,
-                self.fair_value,
                 self.multipliers_score,
                 self.vwap_score,
                 self.dividend_score
@@ -203,7 +200,6 @@ class Portfolio:
                     stock.return_5y,
                     stock.volatility_5y,
                     stock.buffet_score,
-                    stock.fair_value,
                     stock.multipliers_score,
                     stock.vwap_score,
                     stock.dividend_score,

@@ -4,17 +4,20 @@ import json
 
 
 def getVWAP(ticker):
-	dateNow = datetime.date.today().strftime("%Y-%m-%d")
-	dateStart = (datetime.date.today() - datetime.timedelta(days=120)).strftime("%Y-%m-%d")
-	r1 = requests.get(url="https://iss.moex.com/iss/history/engines/stock/markets/shares/boards/TQBR/securities/" + ticker + ".json?from=" + 
-				dateStart + "&till=" + dateNow)
-	historyValue = json.loads(r1.text)["history"]["data"]
-	CumulativeTypicalPriceVolume = 0
-	CumulativeVolume = 0
-	for i in historyValue:
-		CumulativeTypicalPriceVolume += (i[7] + i[8] + i[9])*i[12]/3
-		CumulativeVolume += i[12]
-	return round(CumulativeTypicalPriceVolume/CumulativeVolume, 3)
+    dateNow = datetime.date.today().strftime("%Y-%m-%d")
+    dateStart = (datetime.date.today() - datetime.timedelta(days=120)).strftime("%Y-%m-%d")
+    r1 = requests.get(url="https://iss.moex.com/iss/history/engines/stock/markets/shares/boards/TQBR/securities/" + ticker + ".json?from=" + 
+                dateStart + "&till=" + dateNow)
+    historyValue = json.loads(r1.text)["history"]["data"]
+    CumulativeTypicalPriceVolume = 0
+    CumulativeVolume = 0
+    for i in historyValue:
+        try:
+            CumulativeTypicalPriceVolume += (i[7] + i[8] + i[9])*i[12]/3
+            CumulativeVolume += i[12]
+        except:
+            pass
+    return round(CumulativeTypicalPriceVolume/CumulativeVolume, 3)
 
 # Функция для получения рыночной цены акции
 def get_market_price(ticker):

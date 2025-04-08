@@ -52,10 +52,10 @@ class MainWindow(QMainWindow):
 
         # Основные компоненты
         self.portfolio_table = QTableWidget()
-        self.portfolio_table.setColumnCount(17)  # Количество столбцов
+        self.portfolio_table.setColumnCount(16)  # Количество столбцов
         self.portfolio_table.setHorizontalHeaderLabels([
             "Сектор", "Тикер", "Название компании", "Текущая цена", "ОД5Л",
-            "В5Л", "Оценка Баффета", "Оценка по росту",
+            "В5Л", "Оценка Баффета",
             "Мультипликаторы", "VWAP", "Дивиденды", "Общая оценка акции",
             "Оценка сектора", "Вес акции в портфеле", "Стоимость лота", "Кол-во лотов",
             "Реальные веса"
@@ -138,14 +138,14 @@ class MainWindow(QMainWindow):
             quantities = self.portfolio.get_quantities_of_portfolio(total_sum)
 
             for row in range(row_count):
-                self.portfolio_table.setItem(row, 15, QTableWidgetItem(str(quantities[row])))
-                self.portfolio_table.item(row, 15).setBackground(self.sector_colors[self.portfolio_table.item(row, 0).text()])
+                self.portfolio_table.setItem(row, 14, QTableWidgetItem(str(quantities[row])))
+                self.portfolio_table.item(row, 14).setBackground(self.sector_colors[self.portfolio_table.item(row, 0).text()])
 
             self.portfolio.calculate_real_stock_weights(total_sum)
             real_stock_wights = list(self.portfolio.real_stock_weights.values())
             for row in range(row_count):
-                self.portfolio_table.setItem(row, 16, QTableWidgetItem(f"{real_stock_wights[row]:.2f}"))
-                self.portfolio_table.item(row, 16).setBackground(self.sector_colors[self.portfolio_table.item(row, 0).text()])
+                self.portfolio_table.setItem(row, 15, QTableWidgetItem(f"{real_stock_wights[row]:.2f}"))
+                self.portfolio_table.item(row, 15).setBackground(self.sector_colors[self.portfolio_table.item(row, 0).text()])
 
             self.add_portfolio_return_and_volatility_point()
             QMessageBox.information(self, "Ребалансировка", "Кол-во лотов успешно обновлено.")
@@ -300,19 +300,18 @@ class MainWindow(QMainWindow):
                 self.portfolio_table.setItem(row, 4, QTableWidgetItem(f"{stock.return_5y}"))
                 self.portfolio_table.setItem(row, 5, QTableWidgetItem(f"{stock.volatility_5y}"))
                 self.portfolio_table.setItem(row, 6, QTableWidgetItem(f"{stock.buffet_score:.2f}"))
-                self.portfolio_table.setItem(row, 7, QTableWidgetItem(f"{stock.fair_value:.2f}"))
-                self.portfolio_table.setItem(row, 8, QTableWidgetItem(f"{stock.multipliers_score:.2f}"))
-                self.portfolio_table.setItem(row, 9, QTableWidgetItem(f"{stock.vwap_score:.2f}"))
-                self.portfolio_table.setItem(row, 10, QTableWidgetItem(f"{stock.dividend_score:.2f}"))
-                self.portfolio_table.setItem(row, 11, QTableWidgetItem(f"{stock.total_score:.2f}"))
-                self.portfolio_table.setItem(row, 12, QTableWidgetItem(f"{sector.average_score:.2f}"))
-                self.portfolio_table.setItem(row, 13, QTableWidgetItem(f"{self.portfolio.stock_weights.get(stock.ticker, 0):.2f}"))
-                self.portfolio_table.setItem(row, 14, QTableWidgetItem(f"{stock.lot_price:.2f}"))
-                self.portfolio_table.setItem(row, 15, QTableWidgetItem(f"{stock.num_lots}"))
-                self.portfolio_table.setItem(row, 16, QTableWidgetItem(f"{self.portfolio.stock_weights.get(stock.ticker, 0):.2f}"))
+                self.portfolio_table.setItem(row, 7, QTableWidgetItem(f"{stock.multipliers_score:.2f}"))
+                self.portfolio_table.setItem(row, 8, QTableWidgetItem(f"{stock.vwap_score:.2f}"))
+                self.portfolio_table.setItem(row, 9, QTableWidgetItem(f"{stock.dividend_score:.2f}"))
+                self.portfolio_table.setItem(row, 10, QTableWidgetItem(f"{stock.total_score:.2f}"))
+                self.portfolio_table.setItem(row, 11, QTableWidgetItem(f"{sector.average_score:.2f}"))
+                self.portfolio_table.setItem(row, 12, QTableWidgetItem(f"{self.portfolio.stock_weights.get(stock.ticker, 0):.2f}"))
+                self.portfolio_table.setItem(row, 13, QTableWidgetItem(f"{stock.lot_price:.2f}"))
+                self.portfolio_table.setItem(row, 14, QTableWidgetItem(f"{stock.num_lots}"))
+                self.portfolio_table.setItem(row, 15, QTableWidgetItem(f"{self.portfolio.stock_weights.get(stock.ticker, 0):.2f}"))
                 
                 # Устанавливаем цвет фона для строки
-                for column in range(17):
+                for column in range(16):
                     self.portfolio_table.item(row, column).setBackground(self.sector_colors[sector.name])
 
                 row = self.efficient_portfolio_table.rowCount()
